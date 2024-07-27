@@ -83,31 +83,23 @@ export default class DirectVideoAdapter extends ServiceAdapter {
 		if (url.protocol === "file:") {
 			throw new LocalFileException();
 		}
-
 		const fileName = (url.pathname ?? "").split("/").slice(-1)[0].trim();
 		const extension = fileName.split(".").slice(-1)[0];
-		const isJson = extension === "json";
+		const mime = getMimeType(extension) ?? "unknown";
+		if (!isSupportedMimeType(mime)) {
+			throw new UnsupportedMimeTypeException(mime);
+		}
 
-		let video: Video;
-
-		if (!isJson) {
-			const mime = getMimeType(extension) ?? "unknown";
-			if (!isSupportedMimeType(mime)) {
-				throw new UnsupportedMimeTypeException(mime);
-			}
-			const fileInfo = await this.ffprobe.getFileInfo(link);
-			const duration = Math.ceil(this.getDuration(fileInfo));
-			const title =
+		let duration;
+		let title;
+		let sources = [];
+		let captions = [];
+		if (extension != "json") {
+			const fileInfo = (extension == "json")? undefined : await this.ffprobe.getFileInfo(link);
+			duration = (extension == "json")? 0 : Math.ceil(this.getDuration(fileInfo));
+			title =
 				fileInfo.format?.tags?.title ??
 				decodeURIComponent(fileName).slice(0, -extension.length - 1);
-			video = {
-				service: this.serviceId,
-				id: link,
-				title,
-				description: `Full Link: ${link}`,
-				mime,
-				length: duration,
-			};
 		} else {
 			const response = await fetch(link);
 			if (!response.ok) {
@@ -115,16 +107,22 @@ export default class DirectVideoAdapter extends ServiceAdapter {
 			}
 
 			const body = await response.json();
-			video = {
-				service: this.serviceId,
-				id: body.sources[0].url,
-				title: body.title,
-				description: `Full Link: ${link}`,
-				mime: body.sources[0].contentType,
-				length: body.duration,
-				caption_url: body.textTracks[0].url,
-			};
+			duration = body.duration;
+			title = body.title;
+			sources = body.sources;
+			captions = body.textTracks;
 		}
+		const video: Video = {
+			service: this.serviceId,
+			id: link,
+			title,
+			description: "",
+			mime,
+			length: duration,
+		};
+		video.sources = sources;
+		video.captions = captions;
+
 		return video;
 	}
 }

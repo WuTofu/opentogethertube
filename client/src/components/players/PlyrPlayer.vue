@@ -12,6 +12,7 @@ import dashjs from "dashjs";
 import "plyr/src/sass/plyr.scss";
 import type { MediaPlayerWithCaptions, MediaPlayerWithPlaybackRate } from "../composables";
 import { useCaptions } from "../composables";
+import { SourceObj, CaptionObj } from "ott-common/models/video";
 
 export default defineComponent({
 	name: "PlyrPlayer",
@@ -20,7 +21,8 @@ export default defineComponent({
 		videoUrl: { type: String, required: true },
 		videoMime: { type: String, required: true },
 		thumbnail: { type: String },
-		captionUrl: { type: String },
+		sources: { type: Array<SourceObj> },
+		captionsTracks: { type: Array<CaptionObj> },
 	},
 	emits: [
 		"apiready",
@@ -35,7 +37,7 @@ export default defineComponent({
 		"buffer-spans",
 	],
 	setup(props, { emit }) {
-		const { videoUrl, videoMime, thumbnail, captionUrl } = toRefs(props);
+		const { videoUrl, videoMime, thumbnail, sources, captionsTracks } = toRefs(props);
 		const videoElem = ref<HTMLVideoElement | undefined>();
 		const player = ref<Plyr | undefined>();
 		let hls: Hls | undefined = undefined;
@@ -167,7 +169,7 @@ export default defineComponent({
 				},
 				captions: {
 					active: true,
-					language: "zh",
+					language: "auto",
 					update: false,
 				},
 			});
@@ -292,37 +294,48 @@ export default defineComponent({
 					emit("ready");
 				});
 			} else {
-				if (captionUrl === undefined) {
-					player.value.source = {
-						sources: [
-							{
-								src: videoUrl.value,
-								type: videoMime.value,
-							},
-						],
-						type: "video",
-						poster: thumbnail.value,
-					};
+				const sourcesList: {src: String, type: String, size?: Number}[] = [];
+				const captionList: {kind: String, label: String, srclang: String, src: String, default?: false}[] = [];
+				let defaultCaption = -1;
+				if (videoMime.value !== "application/json") {
+					sourcesList.push({
+							src: videoUrl.value,
+							type: videoMime.value,
+					});
 				} else {
-					player.value.source = {
-						sources: [
-							{
-								src: videoUrl.value,
-								type: videoMime.value,
-							},
-						],
-						type: "video",
-						poster: thumbnail.value,
-						tracks: [
-							{
-								kind: "captions",
-								label: "Chinese",
-								srclang: "zh",
-								src: captionUrl.value,
-								default: true,
-							},
-						]
-					};
+					for (let i = 0; i < (sources?.value?.length ?? 0); i++) {
+						const source = sources.value[i];
+						sourcesList.push({
+							src: source.url,
+							type: source.contentType,
+							size: source.quality,
+						});
+					}
+					for (let i = 0; i < (captionsTracks?.value?.length ?? 0); i++) {
+						const caption = captionsTracks.value[i];
+						captionList.push({
+							kind: "captions",
+							label: caption.name,
+							srclang: caption.name,
+							src: caption.url,
+							default: caption.default,
+						});
+						if ((caption?.default ?? false) && defaultCaption != -1) {
+							// Plyr's captions lang setting (auto) ignores default setting
+							// let's set it manually
+							defaultCaption = i;
+						}
+					}
+				}
+				player.value.source = {
+					sources: sourcesList,
+					type: "video",
+					poster: thumbnail.value,
+					tracks: captionList,
+				};
+				// if default caption track is found
+				if (defaultCaption != -1) {
+					player.value.currentTrack = defaultCaption;
 				}
 				videoElem.value = document.querySelector("video") as HTMLVideoElement;
 				// this is needed to load vtt file

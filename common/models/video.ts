@@ -7,6 +7,19 @@ export interface VideoId {
 	id: string;
 }
 
+export interface SourceObj {
+	url: string;
+	contentType: string;
+	quality: number;
+}
+
+export interface CaptionObj {
+	url: string;
+	contentType: string;
+	name: string;
+	default?: false;
+}
+
 export interface VideoMetadata {
 	title: string;
 	description: string;
@@ -16,7 +29,8 @@ export interface VideoMetadata {
 	highlight?: true;
 	hls_url?: string;
 	dash_url?: string;
-	caption_url?: string;
+	sources?: SourceObj[];
+	captions?: CaptionObj[];
 }
 
 export type Video = VideoId & Partial<VideoMetadata>;
