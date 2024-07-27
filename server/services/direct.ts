@@ -83,13 +83,14 @@ export default class DirectVideoAdapter extends ServiceAdapter {
 		if (url.protocol === "file:") {
 			throw new LocalFileException();
 		}
+
 		const fileName = (url.pathname ?? "").split("/").slice(-1)[0].trim();
 		const extension = fileName.split(".").slice(-1)[0];
-		let video: Video = {
-			service: this.serviceId,
-			id: link,
-		};
-		if (extension != "json") {
+		const isJson = extension === "json";
+
+		let video: Video;
+
+		if (!isJson) {
 			const mime = getMimeType(extension) ?? "unknown";
 			if (!isSupportedMimeType(mime)) {
 				throw new UnsupportedMimeTypeException(mime);
@@ -108,20 +109,21 @@ export default class DirectVideoAdapter extends ServiceAdapter {
 				length: duration,
 			};
 		} else {
-			await fetch(link).then(response => {
-				if (!response.ok) { throw Error(response.statusText); }
-				return response.json();
-			}).then(body => {
-				video = {
-					service: this.serviceId,
-					id: body.sources[0].url,
-					title: body.title,
-					description: `Full Link: ${link}`,
-					mime: body.sources[0].contentType,
-					length: body.duration,
-					caption_url: body.textTracks[0].url,
-				};
-			});
+			const response = await fetch(link);
+			if (!response.ok) {
+				throw new Error(response.statusText);
+			}
+
+			const body = await response.json();
+			video = {
+				service: this.serviceId,
+				id: body.sources[0].url,
+				title: body.title,
+				description: `Full Link: ${link}`,
+				mime: body.sources[0].contentType,
+				length: body.duration,
+				caption_url: body.textTracks[0].url,
+			};
 		}
 		return video;
 	}
