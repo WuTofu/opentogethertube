@@ -20,6 +20,7 @@ export default defineComponent({
 		videoUrl: { type: String, required: true },
 		videoMime: { type: String, required: true },
 		thumbnail: { type: String },
+		captionUrl: { type: String },
 	},
 	emits: [
 		"apiready",
@@ -34,7 +35,7 @@ export default defineComponent({
 		"buffer-spans",
 	],
 	setup(props, { emit }) {
-		const { videoUrl, videoMime, thumbnail } = toRefs(props);
+		const { videoUrl, videoMime, thumbnail, captionUrl } = toRefs(props);
 		const videoElem = ref<HTMLVideoElement | undefined>();
 		const player = ref<Plyr | undefined>();
 		let hls: Hls | undefined = undefined;
@@ -164,6 +165,11 @@ export default defineComponent({
 				fullscreen: {
 					enabled: false,
 				},
+				captions: {
+					active: true,
+					language: "zh",
+					update: false,
+				},
 			});
 
 			player.value.on("ready", () => emit("ready"));
@@ -286,17 +292,41 @@ export default defineComponent({
 					emit("ready");
 				});
 			} else {
-				player.value.source = {
-					sources: [
-						{
-							src: videoUrl.value,
-							type: videoMime.value,
-						},
-					],
-					type: "video",
-					poster: thumbnail.value,
-				};
+				if (captionUrl === undefined) {
+					player.value.source = {
+						sources: [
+							{
+								src: videoUrl.value,
+								type: videoMime.value,
+							},
+						],
+						type: "video",
+						poster: thumbnail.value,
+					};
+				} else {
+					player.value.source = {
+						sources: [
+							{
+								src: videoUrl.value,
+								type: videoMime.value,
+							},
+						],
+						type: "video",
+						poster: thumbnail.value,
+						tracks: [
+							{
+								kind: "captions",
+								label: "Chinese",
+								srclang: "zh",
+								src: captionUrl.value,
+								default: true,
+							},
+						]
+					};
+				}
 				videoElem.value = document.querySelector("video") as HTMLVideoElement;
+				// this is needed to load vtt file
+				videoElem.value.setAttribute("crossorigin", "anonymous");
 			}
 			// this is needed to get the player to keep playing after the previous video has ended
 			player.value.play();
@@ -373,5 +403,10 @@ export default defineComponent({
 	height: 100%;
 	object-fit: contain;
 	object-position: 50% 50%;
+}
+
+.plyr__captions {
+  font-size: 2em;
+  bottom: 1.5em;
 }
 </style>

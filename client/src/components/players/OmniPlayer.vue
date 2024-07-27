@@ -69,6 +69,7 @@
 				:video-url="source.hls_url ?? source.id"
 				:video-mime="source.mime!"
 				:thumbnail="source.thumbnail"
+				:caption-url="source.caption_url"
 				class="player"
 				@apiready="onApiReady"
 				@playing="onPlaying"

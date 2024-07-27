@@ -54,7 +54,7 @@ export default class DirectVideoAdapter extends ServiceAdapter {
 
 	canHandleURL(link: string): boolean {
 		const url = URL.parse(link);
-		return /\/*\.(mp(3|4v?)|mpg4|webm|flv|mkv|avi|wmv|qt|mov|ogv|m4v|h26[1-4]|ogg)$/.test(
+		return /\/*\.(mp(3|4v?)|mpg4|webm|flv|mkv|avi|wmv|qt|mov|ogv|m4v|h26[1-4]|ogg|json)$/.test(
 			(url.path ?? "/").split("?")[0]
 		);
 	}
@@ -85,24 +85,44 @@ export default class DirectVideoAdapter extends ServiceAdapter {
 		}
 		const fileName = (url.pathname ?? "").split("/").slice(-1)[0].trim();
 		const extension = fileName.split(".").slice(-1)[0];
-		const mime = getMimeType(extension) ?? "unknown";
-		if (!isSupportedMimeType(mime)) {
-			throw new UnsupportedMimeTypeException(mime);
-		}
-		const fileInfo = await this.ffprobe.getFileInfo(link);
-		const duration = Math.ceil(this.getDuration(fileInfo));
-		const title =
-			fileInfo.format?.tags?.title ??
-			decodeURIComponent(fileName).slice(0, -extension.length - 1);
-		const video: Video = {
+		let video: Video = {
 			service: this.serviceId,
 			id: link,
-			title,
-			description: `Full Link: ${link}`,
-			mime,
-			length: duration,
 		};
-
+		if (extension != "json") {
+			const mime = getMimeType(extension) ?? "unknown";
+			if (!isSupportedMimeType(mime)) {
+				throw new UnsupportedMimeTypeException(mime);
+			}
+			const fileInfo = await this.ffprobe.getFileInfo(link);
+			const duration = Math.ceil(this.getDuration(fileInfo));
+			const title =
+				fileInfo.format?.tags?.title ??
+				decodeURIComponent(fileName).slice(0, -extension.length - 1);
+			video = {
+				service: this.serviceId,
+				id: link,
+				title,
+				description: `Full Link: ${link}`,
+				mime,
+				length: duration,
+			};
+		} else {
+			await fetch(link).then(response => {
+				if (!response.ok) { throw Error(response.statusText); }
+				return response.json();
+			}).then(body => {
+				video = {
+					service: this.serviceId,
+					id: body.sources[0].url,
+					title: body.title,
+					description: `Full Link: ${link}`,
+					mime: body.sources[0].contentType,
+					length: body.duration,
+					caption_url: body.textTracks[0].url,
+				};
+			});
+		}
 		return video;
 	}
 }
