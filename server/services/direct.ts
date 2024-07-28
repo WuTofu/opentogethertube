@@ -95,8 +95,8 @@ export default class DirectVideoAdapter extends ServiceAdapter {
 		let sources = [];
 		let captions = [];
 		if (extension != "json") {
-			const fileInfo = (extension == "json")? undefined : await this.ffprobe.getFileInfo(link);
-			duration = (extension == "json")? 0 : Math.ceil(this.getDuration(fileInfo));
+			const fileInfo = await this.ffprobe.getFileInfo(link);
+			duration = Math.ceil(this.getDuration(fileInfo));
 			title =
 				fileInfo.format?.tags?.title ??
 				decodeURIComponent(fileName).slice(0, -extension.length - 1);
