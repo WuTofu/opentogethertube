@@ -99,12 +99,12 @@ export default defineComponent({
 			},
 			getCaptionsTracks(): string[] {
 				const tracks: string[] = [];
-				for (let i = 0; i < (videoElem.value?.textTracks?.length ?? 0); i++) {
-					const track = videoElem.value?.textTracks[i];
-					if (!track || track.kind !== "captions") {
+				for (let i = 0; i < (captionsTracks?.value?.length ?? 0); i++) {
+					const track = captionsTracks.value?.[i];
+					if (!track) {
 						continue;
 					}
-					tracks.push(track.language);
+					tracks.push(track.name);
 				}
 				return tracks;
 			},
@@ -141,12 +141,12 @@ export default defineComponent({
 		};
 
 		function findTrackIdx(language: string): number {
-			for (let i = 0; i < (videoElem.value?.textTracks?.length ?? 0); i++) {
-				const track = videoElem.value?.textTracks[i];
-				if (!track || track.kind !== "captions") {
+			for (let i = 0; i < (captionsTracks?.value?.length ?? 0); i++) {
+				const track = captionsTracks.value?.[i];
+				if (!track) {
 					continue;
 				}
-				if (track.language === language) {
+				if (track.name === language) {
 					return i;
 				}
 			}
@@ -294,8 +294,8 @@ export default defineComponent({
 					emit("ready");
 				});
 			} else {
-				const sourcesList: {src: String, type: String, size?: Number}[] = [];
-				const captionList: {kind: String, label: String, srclang: String, src: String, default?: false}[] = [];
+				const sourcesList: Plyr.Source[] = [];
+				const captionList: Plyr.Track[] = [];
 				let defaultCaption = -1;
 				if (videoMime.value !== "application/json") {
 					sourcesList.push({
@@ -304,7 +304,7 @@ export default defineComponent({
 					});
 				} else {
 					for (let i = 0; i < (sources?.value?.length ?? 0); i++) {
-						const source = sources.value[i];
+						const source = sources.value?.[i] ?? {url: "", contentType: "", quality: -1};
 						sourcesList.push({
 							src: source.url,
 							type: source.contentType,
@@ -312,15 +312,15 @@ export default defineComponent({
 						});
 					}
 					for (let i = 0; i < (captionsTracks?.value?.length ?? 0); i++) {
-						const caption = captionsTracks.value[i];
+						const caption = captionsTracks.value?.[i] ?? {name: "", url: "", default: false};
 						captionList.push({
 							kind: "captions",
 							label: caption.name,
-							srclang: caption.name,
+							srcLang: caption.name,
 							src: caption.url,
 							default: caption.default,
 						});
-						if ((caption?.default ?? false) && defaultCaption != -1) {
+						if (defaultCaption == -1 && (caption.default ?? false)) {
 							// Plyr's captions lang setting (auto) ignores default setting
 							// let's set it manually
 							defaultCaption = i;
@@ -335,7 +335,12 @@ export default defineComponent({
 				};
 				// if default caption track is found
 				if (defaultCaption != -1) {
-					player.value.currentTrack = defaultCaption;
+					console.log(`Found default caption tracke: ${defaultCaption}`);
+					setTimeout(() => {
+						if (player.value) {
+							player.value.currentTrack = defaultCaption
+						}
+					}, 0);
 				}
 				videoElem.value = document.querySelector("video") as HTMLVideoElement;
 				// this is needed to load vtt file
