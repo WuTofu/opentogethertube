@@ -81,7 +81,13 @@ export default defineComponent({
 			},
 
 			isCaptionsSupported(): boolean {
-				return ["direct", "hls"].includes(props.service);
+				if (props.service == "hls") {
+					return true;
+				}
+				if (props.service == "direct") {
+					return (captionsTracks?.value?.length ?? 0) > 0;
+				}
+				return false
 			},
 			setCaptionsEnabled(enabled: boolean): void {
 				if (hls) {
