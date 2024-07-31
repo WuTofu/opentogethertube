@@ -120,6 +120,7 @@ export default defineComponent({
 					return;
 				}
 				console.log("PlyrPlayer: setCaptionsTrack:", track);
+				window.localStorage.setItem("ott-caption-user-lang", track);
 				if (hls) {
 					hls.subtitleTrack = findTrackIdx(track);
 				} else {
@@ -156,7 +157,7 @@ export default defineComponent({
 					return i;
 				}
 			}
-			return 0;
+			return -1;
 		}
 
 		const captions = useCaptions();
@@ -307,7 +308,7 @@ export default defineComponent({
 			} else {
 				const sourcesList: Plyr.Source[] = [];
 				const captionList: Plyr.Track[] = [];
-				let defaultCaption = -1;
+				let captionTrackIdx = -1;
 				if (videoMime.value !== "application/json") {
 					sourcesList.push({
 							src: videoUrl.value,
@@ -331,10 +332,11 @@ export default defineComponent({
 							src: caption.url,
 							default: caption.default,
 						});
-						if (defaultCaption == -1 && (caption.default ?? false)) {
+						if (captionTrackIdx == -1 && (caption.default ?? false)) {
 							// Plyr's captions lang setting (auto) ignores default setting
 							// let's set it manually
-							defaultCaption = i;
+							captionTrackIdx = i;
+							console.log(`Found default caption track: ${captionTrackIdx}`);
 						}
 					}
 				}
@@ -344,15 +346,27 @@ export default defineComponent({
 					poster: thumbnail.value,
 					tracks: captionList,
 				};
-				// if default caption track is found
-				if (defaultCaption != -1) {
-					console.log(`Found default caption tracke: ${defaultCaption}`);
+
+				const captionTrack_user = window.localStorage.getItem("ott-caption-user-lang");
+				// if user prefers what the land of caption is
+				if (captionTrack_user !== null) {
+					console.log(`Found the user prefers caption lang: ${captionTrack_user}`);
+					const captionTrackIdx_user = findTrackIdx(captionTrack_user);
+					if (captionTrackIdx_user != -1) {
+						captionTrackIdx = captionTrackIdx_user;
+						console.log(`Found caption lang '${captionTrack_user}' at track '${captionTrackIdx_user}'`);
+					}
+				}
+
+				// Set caption track by user preference (first) or source's default
+				if (captionTrackIdx != -1) {
 					setTimeout(() => {
 						if (player.value) {
-							player.value.currentTrack = defaultCaption
+							player.value.currentTrack = captionTrackIdx
 						}
 					}, 0);
 				}
+
 				videoElem.value = document.querySelector("video") as HTMLVideoElement;
 				// this is needed to load vtt file
 				videoElem.value.setAttribute("crossorigin", "anonymous");
