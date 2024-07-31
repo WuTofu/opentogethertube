@@ -157,7 +157,12 @@ export default defineComponent({
 		onMounted(() => {
 			videoElem.value = document.getElementById("directplayer") as HTMLVideoElement;
 			player.value = new Plyr(videoElem.value, {
-				controls: [],
+				controls: [
+					"settings",	// Settings menu
+				],
+				settings: [
+					"quality",	// Only show quality in Settings menu
+				],
 				clickToPlay: false,
 				keyboard: {
 					focused: false,
@@ -424,7 +429,12 @@ export default defineComponent({
 }
 
 .plyr__captions {
-  font-size: 2em;
-  bottom: 1.5em;
+	font-size: 2.5em;
+  	bottom: 50px;
+}
+.plyr__menu {
+	position: absolute;
+	bottom: 85px;
+	right: 45px;
 }
 </style>
