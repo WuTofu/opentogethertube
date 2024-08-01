@@ -117,10 +117,12 @@ import {
 	MediaPlayer,
 	MediaPlayerWithCaptions,
 	MediaPlayerWithPlaybackRate,
+	MediaPlayerWithQuality,
 	useCaptions,
 	useMediaPlayer,
 	usePlaybackRate,
 	useVolume,
+	useQualities,
 } from "../composables";
 import { watchEffect } from "vue";
 import { ALL_VIDEO_SERVICES } from "ott-common";
