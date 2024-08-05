@@ -117,10 +117,12 @@ import {
 	MediaPlayer,
 	MediaPlayerWithCaptions,
 	MediaPlayerWithPlaybackRate,
+	MediaPlayerWithQuality,
 	useCaptions,
 	useMediaPlayer,
 	usePlaybackRate,
 	useVolume,
+	useQualities,
 } from "../composables";
 import { watchEffect } from "vue";
 import { ALL_VIDEO_SERVICES } from "ott-common";
@@ -157,6 +159,10 @@ function implementsPlaybackRate(p: MediaPlayer | null): p is MediaPlayerWithPlay
 	return !!p && p.getAvailablePlaybackRates().length > 1;
 }
 
+function implementsQualities(p: MediaPlayer | null): p is MediaPlayerWithQuality {
+	return !!p && p.isQualitySupported();
+}
+
 function isCaptionsSupported() {
 	if (!controls.checkForPlayer(player.value)) {
 		return false;
@@ -164,8 +170,16 @@ function isCaptionsSupported() {
 	return implementsCaptions(player.value);
 }
 
+function isQualitySupported() {
+	if (!controls.checkForPlayer(player.value)) {
+		return false;
+	}
+	return implementsQualities(player.value);
+}
+
 const volume = useVolume();
 const captions = useCaptions();
+const qualities = useQualities();
 watch(volume, v => {
 	if (player.value) {
 		player.value.setVolume(v);
@@ -180,6 +194,7 @@ watch(player, v => {
 	} else {
 		captions.isCaptionsSupported.value = false;
 		playbackRate.availablePlaybackRates.value = [1];
+		qualities.isQualitySupported.value = false;
 	}
 });
 watch(captions.isCaptionsEnabled, v => {
@@ -198,6 +213,11 @@ const playbackRate = usePlaybackRate();
 watch(playbackRate.playbackRate, v => {
 	if (player.value && implementsPlaybackRate(player.value)) {
 		player.value.setPlaybackRate(v);
+	}
+});
+watch(qualities.currentVideoTrack, v => {
+	if (player.value && implementsQualities(player.value) && v) {
+		player.value.setVideoTrack(v);
 	}
 });
 watchEffect(() => {
@@ -220,6 +240,7 @@ async function onApiReady() {
 	hasPlayerChangedYet.value = false;
 	controls.markApiReady();
 	captions.isCaptionsSupported.value = isCaptionsSupported();
+	qualities.isQualitySupported.value = isQualitySupported();
 	if (player.value) {
 		player.value.setVolume(volume.value);
 	}
@@ -229,6 +250,9 @@ async function onApiReady() {
 	if (implementsPlaybackRate(player.value)) {
 		playbackRate.availablePlaybackRates.value = player.value.getAvailablePlaybackRates();
 		player.value.setPlaybackRate(playbackRate.playbackRate.value);
+	}
+	if (implementsQualities(player.value)) {
+		qualities.videoTracks.value = player.value.getVideoTracks();
 	}
 	emit("apiready");
 }

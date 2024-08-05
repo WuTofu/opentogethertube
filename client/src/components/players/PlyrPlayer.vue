@@ -10,7 +10,11 @@ import Plyr from "plyr";
 import Hls from "hls.js";
 import dashjs from "dashjs";
 import "plyr/src/sass/plyr.scss";
-import type { MediaPlayerWithCaptions, MediaPlayerWithPlaybackRate } from "../composables";
+import type {
+	MediaPlayerWithCaptions,
+	MediaPlayerWithPlaybackRate,
+	MediaPlayerWithQuality,
+} from "../composables";
 import { useCaptions } from "../composables";
 import { SourceObj, CaptionObj } from "ott-common/models/video";
 
@@ -43,7 +47,7 @@ export default defineComponent({
 		let hls: Hls | undefined = undefined;
 		let dash: dashjs.MediaPlayerClass | undefined = undefined;
 
-		const playerImpl: MediaPlayerWithCaptions & MediaPlayerWithPlaybackRate = {
+		const playerImpl: MediaPlayerWithCaptions & MediaPlayerWithPlaybackRate & MediaPlayerWithQuality = {
 			play() {
 				if (!player.value) {
 					console.error("player not ready");
@@ -128,6 +132,34 @@ export default defineComponent({
 				}
 			},
 
+			isQualitySupported(): boolean {
+				if (props.service == "direct") {
+					return (sources?.value?.length ?? 0) > 0;
+				}
+				return false
+			},
+			getVideoTracks(): string[] {
+				const tracks: string[] = [];
+				for (let i = 0; i < (sources?.value?.length ?? 0); i++) {
+					const source = sources.value?.[i];
+					if (!source) {
+						continue;
+					}
+					tracks.push(source.quality.toString() + "p");
+				}
+				return tracks;
+			},
+			setVideoTrack(idx: number): void {
+				if (!player.value) {
+					console.error("player not ready");
+					return;
+				}
+				console.log("PlyrPlayer: setVideoTrack:", idx);
+				if (props.service == "direct") {
+					player.value.quality = sources.value?.[idx].quality ?? 0;
+				}
+			},
+
 			getAvailablePlaybackRates(): number[] {
 				return [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2];
 			},
@@ -165,10 +197,10 @@ export default defineComponent({
 			videoElem.value = document.getElementById("directplayer") as HTMLVideoElement;
 			player.value = new Plyr(videoElem.value, {
 				controls: [
-					"settings",	// Settings menu
+					// "settings",	// Settings menu
 				],
 				settings: [
-					"quality",	// Only show quality in Settings menu
+					// "quality",	// Only show quality in Settings menu
 				],
 				clickToPlay: false,
 				keyboard: {
@@ -452,9 +484,10 @@ export default defineComponent({
 	font-size: 2.5em;
   	bottom: 50px;
 }
-.plyr__menu {
-	position: absolute;
-	bottom: 85px;
-	right: 45px;
-}
+// For plyr setting menu
+// .plyr__menu {
+// 	position: absolute;
+// 	bottom: 85px;
+// 	right: 45px;
+// }
 </style>

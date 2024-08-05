@@ -15,6 +15,7 @@
 			<TimestampDisplay :current-position="truePosition" data-cy="timestamp-display" />
 			<div class="grow"><!-- Spacer --></div>
 			<ClosedCaptionsSwitcher />
+			<VideoQualitySwitcher />
 			<PlaybackRateSwitcher />
 			<LayoutSwitcher />
 		</v-row>
@@ -29,6 +30,7 @@ import TimestampDisplay from "./TimestampDisplay.vue";
 import VideoProgressSlider from "./VideoProgressSlider.vue";
 import VolumeControl from "./VolumeControl.vue";
 import PlaybackRateSwitcher from "./PlaybackRateSwitcher.vue";
+import VideoQualitySwitcher from "./VideoQualitySwitcher.vue";
 
 withDefaults(
 	defineProps<{
