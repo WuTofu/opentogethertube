@@ -216,7 +216,7 @@ watch(playbackRate.playbackRate, v => {
 	}
 });
 watch(qualities.currentVideoTrack, v => {
-	if (player.value && implementsQualities(player.value) && v) {
+	if (player.value && implementsQualities(player.value) && (v || v === 0)) {
 		player.value.setVideoTrack(v);
 	}
 });
