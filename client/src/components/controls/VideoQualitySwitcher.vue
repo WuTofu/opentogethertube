@@ -9,11 +9,15 @@
 		<v-icon>mdi-settings</v-icon>
 		<v-menu location="top" offset-y activator="parent" :disabled="!supported">
 			<v-list>
+				<v-list-subheader>Quality</v-list-subheader>
 				<v-list-item
 					link
 					@click="setVideosTrack(idx)"
 					v-for="(quality, idx) in qualities.videoTracks.value"
 					:key="idx"
+					:active="idx == qualities.currentVideoTrack.value"
+					color="primary"
+					variant="plain"
 				>
 					{{ quality }}
 				</v-list-item>

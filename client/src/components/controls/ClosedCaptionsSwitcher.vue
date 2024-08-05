@@ -9,6 +9,7 @@
 		<v-icon>mdi-closed-caption</v-icon>
 		<v-menu location="top" offset-y activator="parent" :disabled="!supported">
 			<v-list>
+				<v-list-subheader>Caption</v-list-subheader>
 				<v-list-item
 					link
 					@click="setCaptionsEnabled(true)"
@@ -21,10 +22,19 @@
 					@click="setCaptionsTrack(track)"
 					v-for="(track, idx) in captions.captionsTracks.value"
 					:key="idx"
+					:active="captions.isCaptionsEnabled.value && track == captions.currentTrack.value"
+					color="primary"
+					variant="plain"
 				>
 					{{ track }}
 				</v-list-item>
-				<v-list-item link @click="setCaptionsEnabled(false)">
+				<v-list-item
+					link
+					@click="setCaptionsEnabled(false)"
+					:active="captions.isCaptionsEnabled.value == false"
+					color="primary"
+					variant="plain"
+				>
 					{{ $t("common.off") }}
 				</v-list-item>
 			</v-list>
