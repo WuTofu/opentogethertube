@@ -14,6 +14,8 @@
 					link
 					@click="setCaptionsEnabled(true)"
 					v-if="captions.captionsTracks.value.length === 0"
+					color="primary"
+					variant="plain"
 				>
 					{{ $t("common.on") }}
 				</v-list-item>
@@ -31,7 +33,7 @@
 				<v-list-item
 					link
 					@click="setCaptionsEnabled(false)"
-					:active="captions.isCaptionsEnabled.value == false"
+					:active="!captions.isCaptionsEnabled.value"
 					color="primary"
 					variant="plain"
 				>
