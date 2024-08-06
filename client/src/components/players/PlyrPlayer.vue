@@ -15,7 +15,7 @@ import type {
 	MediaPlayerWithPlaybackRate,
 	MediaPlayerWithQuality,
 } from "../composables";
-import { useCaptions } from "../composables";
+import { useCaptions, useQualities } from "../composables";
 import { SourceObj, CaptionObj } from "ott-common/models/video";
 
 export default defineComponent({
@@ -193,6 +193,7 @@ export default defineComponent({
 		}
 
 		const captions = useCaptions();
+		const qualities = useQualities();
 		onMounted(() => {
 			videoElem.value = document.getElementById("directplayer") as HTMLVideoElement;
 			player.value = new Plyr(videoElem.value, {
@@ -234,6 +235,22 @@ export default defineComponent({
 					return;
 				}
 				emit("buffer-progress", player.value.buffered);
+			});
+			player.value.on("qualitychange", (data) => {
+				const quality_num = data.detail.quality;
+				for (let i = 0; i < (sources?.value?.length ?? 0); i++) {
+					const source = sources.value?.[i];
+					if (source?.quality === quality_num) {
+						qualities.currentVideoTrack.value = i;
+						break;
+					}
+				}
+			});
+			player.value.on("captionsenabled", () =>{
+				captions.isCaptionsEnabled.value = true;
+				const captionTrackIdx = player.value?.currentTrack ?? 0;
+				const captionTrack = captionsTracks.value?.[captionTrackIdx] ?? {name: ""};
+				captions.currentTrack.value = captionTrack.name;
 			});
 			player.value.on("error", err => {
 				emit("error");
