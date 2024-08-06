@@ -198,10 +198,10 @@ export default defineComponent({
 			videoElem.value = document.getElementById("directplayer") as HTMLVideoElement;
 			player.value = new Plyr(videoElem.value, {
 				controls: [
-					// "settings",	// Settings menu
+					"settings",	// Settings menu, and to enable quality control
 				],
 				settings: [
-					// "quality",	// Only show quality in Settings menu
+					"quality",	// Only show quality in Settings menu, and to enable quality control
 				],
 				clickToPlay: false,
 				keyboard: {
@@ -501,10 +501,14 @@ export default defineComponent({
 	font-size: 2.5em;
   	bottom: 50px;
 }
-// For plyr setting menu
-// .plyr__menu {
+
+.plyr__menu {
+// Hide plyr setting menu
+// (To be able to switch qulality, the menu must be enabled)
+	display: none;
+// Show plyr setting menu on the lower right of player
 // 	position: absolute;
 // 	bottom: 85px;
 // 	right: 45px;
-// }
+}
 </style>
