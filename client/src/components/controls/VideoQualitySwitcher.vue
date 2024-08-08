@@ -19,7 +19,7 @@
 					color="primary"
 					variant="plain"
 				>
-					{{ quality }}
+					{{ quality + "p" }}
 				</v-list-item>
 			</v-list>
 		</v-menu>
