@@ -27,6 +27,7 @@
 					:active="captions.isCaptionsEnabled.value && track == captions.currentTrack.value"
 					color="primary"
 					variant="plain"
+					min-width="100px"
 				>
 					{{ track }}
 				</v-list-item>

@@ -18,6 +18,7 @@
 					:active="idx == qualities.currentVideoTrack.value"
 					color="primary"
 					variant="plain"
+					min-width="100px"
 				>
 					{{ quality + "p" }}
 				</v-list-item>
