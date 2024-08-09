@@ -27,8 +27,9 @@
 					:active="captions.isCaptionsEnabled.value && track == captions.currentTrack.value"
 					color="primary"
 					variant="plain"
+					min-width="100px"
 				>
-					{{ track }}
+					{{ captionNameTable[track] || track }}
 				</v-list-item>
 				<v-list-item
 					link
@@ -61,6 +62,11 @@ function setCaptionsTrack(value: string) {
 }
 
 const supported = captions.isCaptionsSupported;
+
+const captionNameTable = {
+    "zh": "中文",
+    "en": "English",
+};
 </script>
 
 <style lang="scss">

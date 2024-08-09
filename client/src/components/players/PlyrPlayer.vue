@@ -138,14 +138,14 @@ export default defineComponent({
 				}
 				return false
 			},
-			getVideoTracks(): string[] {
-				const tracks: string[] = [];
+			getVideoTracks(): number[] {
+				const tracks: number[] = [];
 				for (let i = 0; i < (sources?.value?.length ?? 0); i++) {
 					const source = sources.value?.[i];
 					if (!source) {
 						continue;
 					}
-					tracks.push(source.quality.toString() + "p");
+					tracks.push(source.quality);
 				}
 				return tracks;
 			},

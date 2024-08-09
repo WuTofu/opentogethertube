@@ -53,7 +53,7 @@ export interface MediaPlayerWithPlaybackRate extends MediaPlayer {
 }
 
 export interface MediaPlayerWithQuality extends MediaPlayer {
-	getVideoTracks(): string[];
+	getVideoTracks(): number[];
 	setVideoTrack(idx: number): void;
 }
 
