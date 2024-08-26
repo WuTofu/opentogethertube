@@ -15,7 +15,6 @@
 			<TimestampDisplay :current-position="truePosition" data-cy="timestamp-display" />
 			<div class="grow"><!-- Spacer --></div>
 			<ClosedCaptionsSwitcher />
-			<VideoQualitySwitcher />
 			<PlaybackRateSwitcher />
 			<LayoutSwitcher />
 		</v-row>
