@@ -9,10 +9,13 @@
 		<v-icon>mdi-closed-caption</v-icon>
 		<v-menu location="top" offset-y activator="parent" :disabled="!supported">
 			<v-list>
+				<v-list-subheader>Caption</v-list-subheader>
 				<v-list-item
 					link
 					@click="setCaptionsEnabled(true)"
 					v-if="captions.captionsTracks.value.length === 0"
+					color="primary"
+					variant="plain"
 				>
 					{{ $t("common.on") }}
 				</v-list-item>
@@ -21,10 +24,20 @@
 					@click="setCaptionsTrack(track)"
 					v-for="(track, idx) in captions.captionsTracks.value"
 					:key="idx"
+					:active="captions.isCaptionsEnabled.value && track == captions.currentTrack.value"
+					color="primary"
+					variant="plain"
+					min-width="100px"
 				>
-					{{ track }}
+					{{ captionNameTable[track] || track }}
 				</v-list-item>
-				<v-list-item link @click="setCaptionsEnabled(false)">
+				<v-list-item
+					link
+					@click="setCaptionsEnabled(false)"
+					:active="!captions.isCaptionsEnabled.value"
+					color="primary"
+					variant="plain"
+				>
 					{{ $t("common.off") }}
 				</v-list-item>
 			</v-list>
@@ -49,6 +62,11 @@ function setCaptionsTrack(value: string) {
 }
 
 const supported = captions.isCaptionsSupported;
+
+const captionNameTable = {
+    "zh": "中文",
+    "en": "English",
+};
 </script>
 
 <style lang="scss">

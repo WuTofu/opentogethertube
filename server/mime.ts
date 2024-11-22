@@ -18,6 +18,7 @@ const mimeTypes = {
 	"audio/flac": ["flac"],
 	"audio/x-aiff": ["aif", "aiff", "aifc"],
 	"application/dash+xml": ["mpd"],
+	"application/json": ["json"],
 };
 
 export function getMimeType(extension: string): string | undefined {
@@ -29,7 +30,7 @@ export function getMimeType(extension: string): string | undefined {
 }
 
 export function isSupportedMimeType(mimeType: string): boolean {
-	if (mimeType === "application/x-mpegURL" || mimeType === "application/dash+xml") {
+	if (mimeType === "application/x-mpegURL" || mimeType === "application/dash+xml" || mimeType === "application/json") {
 		return true;
 	}
 	if (/^video\/(?!x-flv)(?!x-matroska)(?!x-ms-wmv)(?!x-msvideo)[a-z0-9-]+$/.exec(mimeType)) {

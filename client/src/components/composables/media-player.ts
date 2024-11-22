@@ -36,6 +36,8 @@ export interface MediaPlayer {
 
 	isCaptionsSupported(): boolean;
 	getAvailablePlaybackRates(): number[];
+
+	isQualitySupported(): boolean;
 }
 
 export interface MediaPlayerWithCaptions extends MediaPlayer {
@@ -48,6 +50,11 @@ export interface MediaPlayerWithCaptions extends MediaPlayer {
 export interface MediaPlayerWithPlaybackRate extends MediaPlayer {
 	getPlaybackRate(): number;
 	setPlaybackRate(rate: number): void;
+}
+
+export interface MediaPlayerWithQuality extends MediaPlayer {
+	getVideoTracks(): number[];
+	setVideoTrack(idx: number): void;
 }
 
 export class MediaPlayerV2 {
@@ -149,5 +156,17 @@ export function usePlaybackRate() {
 		isPlaybackRateSupported,
 		playbackRate,
 		availablePlaybackRates,
+	};
+}
+
+const isQualitySupported: Ref<boolean> = ref(false);
+const videoTracks: Ref<string[]> = ref([]);
+const currentVideoTrack: Ref<number | null> = ref(null);
+
+export function useQualities() {
+	return {
+		isQualitySupported,
+		videoTracks,
+		currentVideoTrack,
 	};
 }

@@ -10,8 +10,13 @@ import Plyr from "plyr";
 import Hls from "hls.js";
 import dashjs from "dashjs";
 import "plyr/src/sass/plyr.scss";
-import type { MediaPlayerWithCaptions, MediaPlayerWithPlaybackRate } from "../composables";
-import { useCaptions } from "../composables";
+import type {
+	MediaPlayerWithCaptions,
+	MediaPlayerWithPlaybackRate,
+	MediaPlayerWithQuality,
+} from "../composables";
+import { useCaptions, useQualities } from "../composables";
+import { SourceObj, CaptionObj } from "ott-common/models/video";
 
 export default defineComponent({
 	name: "PlyrPlayer",
@@ -20,6 +25,8 @@ export default defineComponent({
 		videoUrl: { type: String, required: true },
 		videoMime: { type: String, required: true },
 		thumbnail: { type: String },
+		sources: { type: Array<SourceObj> },
+		captionsTracks: { type: Array<CaptionObj> },
 	},
 	emits: [
 		"apiready",
@@ -34,13 +41,13 @@ export default defineComponent({
 		"buffer-spans",
 	],
 	setup(props, { emit }) {
-		const { videoUrl, videoMime, thumbnail } = toRefs(props);
+		const { videoUrl, videoMime, thumbnail, sources, captionsTracks } = toRefs(props);
 		const videoElem = ref<HTMLVideoElement | undefined>();
 		const player = ref<Plyr | undefined>();
 		let hls: Hls | undefined = undefined;
 		let dash: dashjs.MediaPlayerClass | undefined = undefined;
 
-		const playerImpl: MediaPlayerWithCaptions & MediaPlayerWithPlaybackRate = {
+		const playerImpl: MediaPlayerWithCaptions & MediaPlayerWithPlaybackRate & MediaPlayerWithQuality = {
 			play() {
 				if (!player.value) {
 					console.error("player not ready");
@@ -78,7 +85,13 @@ export default defineComponent({
 			},
 
 			isCaptionsSupported(): boolean {
-				return ["direct", "hls"].includes(props.service);
+				if (props.service == "hls") {
+					return true;
+				}
+				if (props.service == "direct") {
+					return (captionsTracks?.value?.length ?? 0) > 0;
+				}
+				return false
 			},
 			setCaptionsEnabled(enabled: boolean): void {
 				if (hls) {
@@ -96,12 +109,12 @@ export default defineComponent({
 			},
 			getCaptionsTracks(): string[] {
 				const tracks: string[] = [];
-				for (let i = 0; i < (videoElem.value?.textTracks?.length ?? 0); i++) {
-					const track = videoElem.value?.textTracks[i];
-					if (!track || track.kind !== "captions") {
+				for (let i = 0; i < (captionsTracks?.value?.length ?? 0); i++) {
+					const track = captionsTracks.value?.[i];
+					if (!track) {
 						continue;
 					}
-					tracks.push(track.language);
+					tracks.push(track.name);
 				}
 				return tracks;
 			},
@@ -111,10 +124,39 @@ export default defineComponent({
 					return;
 				}
 				console.log("PlyrPlayer: setCaptionsTrack:", track);
+				window.localStorage.setItem("ott-caption-user-lang", track);
 				if (hls) {
 					hls.subtitleTrack = findTrackIdx(track);
 				} else {
 					player.value.currentTrack = findTrackIdx(track);
+				}
+			},
+
+			isQualitySupported(): boolean {
+				if (props.service == "direct") {
+					return (sources?.value?.length ?? 0) > 0;
+				}
+				return false
+			},
+			getVideoTracks(): number[] {
+				const tracks: number[] = [];
+				for (let i = 0; i < (sources?.value?.length ?? 0); i++) {
+					const source = sources.value?.[i];
+					if (!source) {
+						continue;
+					}
+					tracks.push(source.quality);
+				}
+				return tracks;
+			},
+			setVideoTrack(idx: number): void {
+				if (!player.value) {
+					console.error("player not ready");
+					return;
+				}
+				console.log("PlyrPlayer: setVideoTrack:", idx);
+				if (props.service == "direct") {
+					player.value.quality = sources.value?.[idx].quality ?? 0;
 				}
 			},
 
@@ -138,23 +180,29 @@ export default defineComponent({
 		};
 
 		function findTrackIdx(language: string): number {
-			for (let i = 0; i < (videoElem.value?.textTracks?.length ?? 0); i++) {
-				const track = videoElem.value?.textTracks[i];
-				if (!track || track.kind !== "captions") {
+			for (let i = 0; i < (captionsTracks?.value?.length ?? 0); i++) {
+				const track = captionsTracks.value?.[i];
+				if (!track) {
 					continue;
 				}
-				if (track.language === language) {
+				if (track.name === language) {
 					return i;
 				}
 			}
-			return 0;
+			return -1;
 		}
 
 		const captions = useCaptions();
+		const qualities = useQualities();
 		onMounted(() => {
 			videoElem.value = document.getElementById("directplayer") as HTMLVideoElement;
 			player.value = new Plyr(videoElem.value, {
-				controls: [],
+				controls: [
+					"settings",	// Settings menu, and to enable quality control
+				],
+				settings: [
+					"quality",	// Only show quality in Settings menu, and to enable quality control
+				],
 				clickToPlay: false,
 				keyboard: {
 					focused: false,
@@ -163,6 +211,11 @@ export default defineComponent({
 				disableContextMenu: false,
 				fullscreen: {
 					enabled: false,
+				},
+				captions: {
+					active: true,
+					language: "auto",
+					update: false,
 				},
 			});
 
@@ -182,6 +235,22 @@ export default defineComponent({
 					return;
 				}
 				emit("buffer-progress", player.value.buffered);
+			});
+			player.value.on("qualitychange", (data) => {
+				const quality_num = data.detail.quality;
+				for (let i = 0; i < (sources?.value?.length ?? 0); i++) {
+					const source = sources.value?.[i];
+					if (source?.quality === quality_num) {
+						qualities.currentVideoTrack.value = i;
+						break;
+					}
+				}
+			});
+			player.value.on("captionsenabled", () =>{
+				captions.isCaptionsEnabled.value = true;
+				const captionTrackIdx = player.value?.currentTrack ?? 0;
+				const captionTrack = captionsTracks.value?.[captionTrackIdx] ?? {name: ""};
+				captions.currentTrack.value = captionTrack.name;
 			});
 			player.value.on("error", err => {
 				emit("error");
@@ -286,17 +355,70 @@ export default defineComponent({
 					emit("ready");
 				});
 			} else {
-				player.value.source = {
-					sources: [
-						{
+				const sourcesList: Plyr.Source[] = [];
+				const captionList: Plyr.Track[] = [];
+				let captionTrackIdx = -1;
+				if (videoMime.value !== "application/json") {
+					sourcesList.push({
 							src: videoUrl.value,
 							type: videoMime.value,
-						},
-					],
+					});
+				} else {
+					for (let i = 0; i < (sources?.value?.length ?? 0); i++) {
+						const source = sources.value?.[i] ?? {url: "", contentType: "", quality: -1};
+						sourcesList.push({
+							src: source.url,
+							type: source.contentType,
+							size: source.quality,
+						});
+					}
+					for (let i = 0; i < (captionsTracks?.value?.length ?? 0); i++) {
+						const caption = captionsTracks.value?.[i] ?? {name: "", url: "", default: false};
+						captionList.push({
+							kind: "captions",
+							label: caption.name,
+							srcLang: caption.name,
+							src: caption.url,
+							default: caption.default,
+						});
+						if (captionTrackIdx == -1 && (caption.default ?? false)) {
+							// Plyr's captions lang setting (auto) ignores default setting
+							// let's set it manually
+							captionTrackIdx = i;
+							console.log(`Found default caption track: ${captionTrackIdx}`);
+						}
+					}
+				}
+				player.value.source = {
+					sources: sourcesList,
 					type: "video",
 					poster: thumbnail.value,
+					tracks: captionList,
 				};
+
+				const captionTrack_user = window.localStorage.getItem("ott-caption-user-lang");
+				// if user prefers what the land of caption is
+				if (captionTrack_user !== null) {
+					console.log(`Found the user prefers caption lang: ${captionTrack_user}`);
+					const captionTrackIdx_user = findTrackIdx(captionTrack_user);
+					if (captionTrackIdx_user != -1) {
+						captionTrackIdx = captionTrackIdx_user;
+						console.log(`Found caption lang '${captionTrack_user}' at track '${captionTrackIdx_user}'`);
+					}
+				}
+
+				// Set caption track by user preference (first) or source's default
+				if (captionTrackIdx != -1) {
+					setTimeout(() => {
+						if (player.value) {
+							player.value.currentTrack = captionTrackIdx
+						}
+					}, 0);
+				}
+
 				videoElem.value = document.querySelector("video") as HTMLVideoElement;
+				// this is needed to load vtt file
+				videoElem.value.setAttribute("crossorigin", "anonymous");
 			}
 			// this is needed to get the player to keep playing after the previous video has ended
 			player.value.play();
@@ -373,5 +495,20 @@ export default defineComponent({
 	height: 100%;
 	object-fit: contain;
 	object-position: 50% 50%;
+}
+
+.plyr__captions {
+	font-size: 2.5em;
+  	bottom: 50px;
+}
+
+.plyr__menu {
+// Hide plyr setting menu
+// (To be able to switch qulality, the menu must be enabled)
+	display: none;
+// Show plyr setting menu on the lower right of player
+// 	position: absolute;
+// 	bottom: 85px;
+// 	right: 45px;
 }
 </style>
