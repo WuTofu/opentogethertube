@@ -21,7 +21,8 @@ jobs:
 
       - name: Get short SHA
         run: |
-          echo "GIT_COMMIT=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_ENV
+          short_sha=$(git rev-parse --short ${{ github.sha }})
+          echo "GIT_COMMIT=$short_sha" >> $GITHUB_ENV
           echo  GIT_COMMIT=$GIT_COMMIT
 
       - name: Build image
