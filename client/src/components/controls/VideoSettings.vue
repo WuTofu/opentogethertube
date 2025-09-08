@@ -178,7 +178,8 @@ function formatCaption(track: CaptionTrack): string {
 }
 
 function formatQuality(videoTrack: VideoTrack): string {
-	const resolution = getFriendlyResolutionLabel(videoTrack);
+	const friendlyResolution = getFriendlyResolutionLabel(videoTrack);
+	const resolution = videoTrack.label || friendlyResolution;
 	return `${resolution}p`;
 }
 

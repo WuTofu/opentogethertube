@@ -41,7 +41,7 @@ cp env/example.toml env/production.toml
    before running the command below.
 
 ```bash
-docker-compose -f docker/docker-compose.yml up -d
+GIT_COMMIT=$(git rev-parse --short HEAD) docker-compose -f docker/docker-compose.yml up -d
 ```
 
 4. Wait for everything to finish starting, and go to http://localhost:8080/
@@ -69,5 +69,5 @@ docker-compose -f docker/docker-compose.yml ps
 You also rebuild the docker image with the following command.
 
 ```bash
-docker-compose -f docker/docker-compose.yml up -d --build
+GIT_COMMIT=$(git rev-parse --short HEAD) docker-compose -f docker/docker-compose.yml up -d --build
 ```

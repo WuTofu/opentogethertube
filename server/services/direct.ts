@@ -54,7 +54,7 @@ export default class DirectVideoAdapter extends ServiceAdapter {
 
 	canHandleURL(link: string): boolean {
 		const url = URL.parse(link);
-		return /\/*\.(mp(3|4v?)|mpg4|webm|flv|mkv|avi|wmv|qt|mov|ogv|m4v|h26[1-4]|ogg)$/.test(
+		return /\/*\.(mp(3|4v?)|mpg4|webm|flv|mkv|avi|wmv|qt|mov|ogv|m4v|h26[1-4]|ogg|json)$/.test(
 			(url.path ?? "/").split("?")[0]
 		);
 	}
@@ -89,19 +89,39 @@ export default class DirectVideoAdapter extends ServiceAdapter {
 		if (!isSupportedMimeType(mime)) {
 			throw new UnsupportedMimeTypeException(mime);
 		}
-		const fileInfo = await this.ffprobe.getFileInfo(link);
-		const duration = Math.ceil(this.getDuration(fileInfo));
-		const title =
-			fileInfo.format?.tags?.title ??
-			decodeURIComponent(fileName).slice(0, -extension.length - 1);
+
+		let duration;
+		let title;
+		let sources = [];
+		let captions = [];
+		if (extension != "json") {
+			const fileInfo = await this.ffprobe.getFileInfo(link);
+			duration = Math.ceil(this.getDuration(fileInfo));
+			title =
+				fileInfo.format?.tags?.title ??
+				decodeURIComponent(fileName).slice(0, -extension.length - 1);
+		} else {
+			const response = await fetch(link);
+			if (!response.ok) {
+				throw new Error(response.statusText);
+			}
+
+			const body = await response.json();
+			duration = body.duration;
+			title = body.title;
+			sources = body.sources;
+			captions = body.textTracks;
+		}
 		const video: Video = {
 			service: this.serviceId,
 			id: link,
 			title,
-			description: `Full Link: ${link}`,
+			description: "",
 			mime,
 			length: duration,
 		};
+		video.sources = sources;
+		video.captions = captions;
 
 		return video;
 	}
