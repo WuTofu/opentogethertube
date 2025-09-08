@@ -780,7 +780,7 @@ $in-video-chat-width-small: 250px;
 	padding: 0;
 
 	.video-container {
-		grid-template-rows: minmax(400px, 85vh);
+		grid-template-rows: minmax(100px, calc(100vh - 100px));
 	}
 
 	.room-title {

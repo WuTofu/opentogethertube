@@ -111,6 +111,8 @@
 				:video-url="source.src_url ?? source.id"
 				:video-mime="source.mime!"
 				:thumbnail="source.thumbnail"
+				:sources="source.sources"
+				:captions-tracks="source.captions"
 				class="player"
 				@apiready="onApiReady"
 				@playing="onPlaying"
