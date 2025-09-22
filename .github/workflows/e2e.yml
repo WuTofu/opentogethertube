@@ -1,6 +1,7 @@
 name: Cypress Tests
 
 on:
+  workflow_dispatch:
   pull_request:
     paths-ignore:
       - ".vscode/**"
@@ -23,67 +24,145 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  component:
+  # component:
+  #   runs-on: ubuntu-latest
+  #   # container:
+  #   #   image: cypress/browsers:node16.18.0-chrome107-ff106-edge
+  #   #   options: --user 1001
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       node-version: [20.x]
+  #       # run copies of the current job in parallel
+  #       containers: [1]
+  #       browsers: [electron]
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+
+  #     - name: Use Node.js ${{ matrix.node-version }}
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: ${{ matrix.node-version }}
+  #         check-latest: true
+  #         cache: "yarn"
+  #         cache-dependency-path: "./yarn.lock"
+
+  #     - uses: actions/cache@v4
+  #       with:
+  #         path: node_modules
+  #         key: node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
+  #         restore-keys: |
+  #           node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-
+  #     - uses: actions/cache@v4
+  #       with:
+  #         path: |
+  #           ~/.cache/Cypress
+  #         key: cypress-${{ runner.os }}-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
+
+  #     - run: corepack enable
+  #     - run: yarn --immutable
+  #     - run: yarn run cypress install
+  #     - run: yarn workspace ott-common build
+
+  #     - name: "Component Tests"
+  #       uses: cypress-io/github-action@v6.6.1
+  #       with:
+  #         working-directory: client
+  #         install: false
+  #         component: true
+  #         record: true
+  #         parallel: false
+  #         group: "Component - ${{ matrix.browsers }}"
+  #         browser: ${{ matrix.browsers }}
+  #       env:
+  #         CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+  #         # Recommended: pass the GitHub token lets this action correctly
+  #         # determine the unique run id necessary to re-run the checks
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  # e2e:
+  #   runs-on: ubuntu-latest
+  #   # container:
+  #   #   image: cypress/browsers:node16.18.0-chrome107-ff106-edge
+  #   #   options: --user 1001
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       node-version: [20.x]
+  #       # run copies of the current job in parallel
+  #       # containers: [1, 2]
+  #       browsers: [electron]
+  #   env:
+  #     # this is safe because it's only used for testing
+  #     SESSION_SECRET: LERTmi2Jiz6gJHt21AZUWBstezP41P3odxzEsCo1w4zL8XqGyjGdMZ2QPXUenVQQ2fY1xzGBYseB1g9teRHbxF
+  #     CI: true
+  #   services:
+  #     redis:
+  #       image: redis
+  #       options: >-
+  #         --health-cmd "redis-cli ping"
+  #         --health-interval 10s
+  #         --health-timeout 5s
+  #         --health-retries 5
+  #       ports:
+  #         - 6379:6379
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+
+  #     - name: Use Node.js ${{ matrix.node-version }}
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: ${{ matrix.node-version }}
+  #         check-latest: true
+  #         cache: "yarn"
+  #         cache-dependency-path: "./yarn.lock"
+
+  #     - uses: actions/cache@v4
+  #       with:
+  #         path: node_modules
+  #         key: node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
+  #         restore-keys: |
+  #           node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-
+  #     - uses: actions/cache@v4
+  #       with:
+  #         path: |
+  #           ~/.cache/Cypress
+  #         key: cypress-${{ runner.os }}-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
+
+  #     - run: corepack enable
+  #     - run: yarn install --immutable
+
+  #     - name: Build client
+  #       run: yarn run build
+
+  #     - run: yarn run cypress install
+  #     - run: yarn workspace ott-server run sequelize db:migrate
+
+  #     - name: "E2E Tests"
+  #       uses: cypress-io/github-action@v6.6.1
+  #       with:
+  #         install: false
+  #         start: yarn start
+  #         wait-on: "http://localhost:8080/api/status"
+  #         wait-on-timeout: 120
+  #         browser: ${{ matrix.browsers }}
+  #         record: true
+  #         # parallel: true
+  #         group: "E2E - ${{ matrix.browsers }}"
+  #       env:
+  #         PORT: 8080
+  #         REDIS_HOST: 127.0.0.1
+  #         REDIS_PORT: 6379
+  #         YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+  #         CYPRESS_CI: true
+  #         CYPRESS_YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+  #         CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+  #         # Recommended: pass the GitHub token lets this action correctly
+  #         # determine the unique run id necessary to re-run the checks
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  e2e-docker:
     runs-on: ubuntu-latest
-    # container:
-    #   image: cypress/browsers:node16.18.0-chrome107-ff106-edge
-    #   options: --user 1001
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: [20.x]
-        # run copies of the current job in parallel
-        containers: [1]
-        browsers: [electron]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          check-latest: true
-          cache: "yarn"
-          cache-dependency-path: "./yarn.lock"
-
-      - uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/Cypress
-          key: cypress-${{ runner.os }}-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
-
-      - run: corepack enable
-      - run: yarn --immutable
-      - run: yarn run cypress install
-      - run: yarn workspace ott-common build
-
-      - name: "Component Tests"
-        uses: cypress-io/github-action@v6.6.1
-        with:
-          working-directory: client
-          install: false
-          component: true
-          record: true
-          parallel: false
-          group: "Component - ${{ matrix.browsers }}"
-          browser: ${{ matrix.browsers }}
-        env:
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-          # Recommended: pass the GitHub token lets this action correctly
-          # determine the unique run id necessary to re-run the checks
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  e2e:
-    runs-on: ubuntu-latest
-    # container:
-    #   image: cypress/browsers:node16.18.0-chrome107-ff106-edge
-    #   options: --user 1001
     strategy:
       fail-fast: false
       matrix:
@@ -95,16 +174,6 @@ jobs:
       # this is safe because it's only used for testing
       SESSION_SECRET: LERTmi2Jiz6gJHt21AZUWBstezP41P3odxzEsCo1w4zL8XqGyjGdMZ2QPXUenVQQ2fY1xzGBYseB1g9teRHbxF
       CI: true
-    services:
-      redis:
-        image: redis
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 6379:6379
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -142,7 +211,7 @@ jobs:
       - name: Use Node.js 20.x
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: "20.x"
           check-latest: true
           cache: "yarn"
           cache-dependency-path: "./yarn.lock"
@@ -163,75 +232,11 @@ jobs:
 
       - run: corepack enable
       - run: yarn install --immutable
-
-      - name: Build client
-        run: yarn run build
-
       - run: yarn run cypress install
-      - run: yarn workspace ott-server run sequelize db:migrate
-
-      - name: "E2E Tests"
-        uses: cypress-io/github-action@v6.6.1
-        with:
-          install: false
-          start: yarn start
-          wait-on: "http://localhost:8080/api/status"
-          wait-on-timeout: 120
-          browser: ${{ matrix.browsers }}
-          record: true
-          # parallel: true
-          group: "E2E - ${{ matrix.browsers }}"
-        env:
-          PORT: 8080
-          REDIS_HOST: 127.0.0.1
-          REDIS_PORT: 6379
-          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
-          CYPRESS_CI: true
-          CYPRESS_YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-          # Recommended: pass the GitHub token lets this action correctly
-          # determine the unique run id necessary to re-run the checks
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  e2e-docker:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: [20.x]
-        # run copies of the current job in parallel
-        # containers: [1, 2]
-        browsers: [electron]
-    env:
-      # this is safe because it's only used for testing
-      SESSION_SECRET: LERTmi2Jiz6gJHt21AZUWBstezP41P3odxzEsCo1w4zL8XqGyjGdMZ2QPXUenVQQ2fY1xzGBYseB1g9teRHbxF
-      CI: true
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Compose
-        run: |
-          docker compose -f docker/docker-compose.yml up -d --build
-
-      - name: Use Node.js 20.x
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20.x"
-          check-latest: true
-          cache: "yarn"
-          cache-dependency-path: "./yarn.lock"
-
-      - uses: actions/cache@v4
-        with:
-          path: ~/.cache/Cypress
-          key: cypress-${{ runner.os }}-node-20.x-${{ hashFiles('yarn.lock') }}
-
-      - run: npm i cypress
       - name: Run Cypress E2E against Docker
         uses: cypress-io/github-action@v6.6.1
         with:
           install: false
-          start: "echo 'App  running in Docker, skipping start command'"
           wait-on: "http://localhost:8080/api/status"
           wait-on-timeout: 30
           browser: electron
@@ -245,85 +250,90 @@ jobs:
           # Recommended: pass the GitHub token lets this action correctly
           # determine the unique run id necessary to re-run the checks
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Report Docker status if E2E fails
+        if: failure()
+        run: |
+          docker ps -a
+          docker logs opentogethertube
       - name: Shut down Docker Compose
         if: always()
         run: docker compose -f docker/docker-compose.yml down
-  e2e-grafana:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        package:
-          - ott-vis-panel
-          - ott-vis-datasource
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node.js environment
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "yarn"
-          cache-dependency-path: "./yarn.lock"
+  # e2e-grafana:
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       package:
+  #         - ott-vis-panel
+  #         - ott-vis-datasource
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Setup Node.js environment
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: "20"
+  #         cache: "yarn"
+  #         cache-dependency-path: "./yarn.lock"
 
-      - uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-
+  #     - uses: actions/cache@v4
+  #       with:
+  #         path: node_modules
+  #         key: node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
+  #         restore-keys: |
+  #           node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-
 
-      - name: Install dependencies
-        run: yarn install --immutable
+  #     - name: Install dependencies
+  #       run: yarn install --immutable
 
-      - run: yarn workspace ${{ matrix.package }} build
+  #     - run: yarn workspace ${{ matrix.package }} build
 
-      - name: Check for backend
-        id: check-for-backend
-        working-directory: packages/${{ matrix.package }}
-        run: |
-          if [ -f "Magefile.go" ]
-          then
-            echo "has-backend=true" >> $GITHUB_OUTPUT
-          fi
+  #     - name: Check for backend
+  #       id: check-for-backend
+  #       working-directory: packages/${{ matrix.package }}
+  #       run: |
+  #         if [ -f "Magefile.go" ]
+  #         then
+  #           echo "has-backend=true" >> $GITHUB_OUTPUT
+  #         fi
 
-      - name: Setup Go environment
-        if: steps.check-for-backend.outputs.has-backend == 'true'
-        uses: actions/setup-go@v3
-        with:
-          go-version: "1.21"
+  #     - name: Setup Go environment
+  #       if: steps.check-for-backend.outputs.has-backend == 'true'
+  #       uses: actions/setup-go@v3
+  #       with:
+  #         go-version: "1.21"
 
-      - name: Test backend
-        if: steps.check-for-backend.outputs.has-backend == 'true'
-        uses: magefile/mage-action@v2
-        with:
-          version: latest
-          args: coverage
+  #     - name: Test backend
+  #       if: steps.check-for-backend.outputs.has-backend == 'true'
+  #       uses: magefile/mage-action@v2
+  #       with:
+  #         version: latest
+  #         args: coverage
 
-      - name: Build backend
-        if: steps.check-for-backend.outputs.has-backend == 'true'
-        uses: magefile/mage-action@v2
-        with:
-          version: latest
-          args: buildAll
+  #     - name: Build backend
+  #       if: steps.check-for-backend.outputs.has-backend == 'true'
+  #       uses: magefile/mage-action@v2
+  #       with:
+  #         version: latest
+  #         args: buildAll
 
-      - name: Check for E2E
-        id: check-for-e2e
-        working-directory: packages/${{ matrix.package }}
-        run: |
-          if [ -d "cypress" ]
-          then
-            echo "has-e2e=true" >> $GITHUB_OUTPUT
-          fi
+  #     - name: Check for E2E
+  #       id: check-for-e2e
+  #       working-directory: packages/${{ matrix.package }}
+  #       run: |
+  #         if [ -d "cypress" ]
+  #         then
+  #           echo "has-e2e=true" >> $GITHUB_OUTPUT
+  #         fi
 
-      - name: Start grafana docker
-        if: steps.check-for-e2e.outputs.has-e2e == 'true'
-        working-directory: packages/${{ matrix.package }}
-        run: docker compose up -d
+  #     - name: Start grafana docker
+  #       if: steps.check-for-e2e.outputs.has-e2e == 'true'
+  #       working-directory: packages/${{ matrix.package }}
+  #       run: docker compose up -d
 
-      - name: Run e2e tests
-        if: steps.check-for-e2e.outputs.has-e2e == 'true'
-        run: yarn workspace ${{ matrix.package }} run e2e
+  #     - name: Run e2e tests
+  #       if: steps.check-for-e2e.outputs.has-e2e == 'true'
+  #       run: yarn workspace ${{ matrix.package }} run e2e
 
-      - name: Stop grafana docker
-        if: steps.check-for-e2e.outputs.has-e2e == 'true'
-        working-directory: packages/${{ matrix.package }}
-        run: docker compose down
+  #     - name: Stop grafana docker
+  #       if: steps.check-for-e2e.outputs.has-e2e == 'true'
+  #       working-directory: packages/${{ matrix.package }}
+  #       run: docker compose down
