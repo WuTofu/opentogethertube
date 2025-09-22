@@ -1,5 +1,7 @@
 # Optimized for layer cache hits to speed up builds
 
+ARG NODE_ENV=production
+
 FROM node:20-alpine3.22 AS dep-install-stage
 
 WORKDIR /app
@@ -13,8 +15,10 @@ COPY server/package.json server/
 RUN yarn workspaces focus ott-common ott-client ott-server
 
 FROM node:20-alpine3.22 AS build-stage
+ARG NODE_ENV
 ARG GIT_COMMIT
 ENV GIT_COMMIT=$GIT_COMMIT
+ENV NODE_ENV=$NODE_ENV
 
 WORKDIR /app
 RUN apk update -q && apk --no-cache add libc6-compat python3 make g++ autoconf automake libtool -q
@@ -26,10 +30,15 @@ COPY server server
 COPY --from=dep-install-stage /app /app
 COPY --from=dep-install-stage /root/.yarn /root/.yarn
 RUN yarn workspace ott-common run build && yarn workspace ott-client run build && yarn workspace ott-server run build
-RUN rm -rf packages/ott-vis*
-RUN rm -rf node_modules && yarn workspaces focus ott-server --production
+RUN rm -rf packages/ott-vis* node_modules
+RUN if [ "$NODE_ENV" = "production" ]; then \
+		yarn workspaces focus ott-server --production; \
+	else \
+		yarn workspaces focus ott-server; \
+	fi
 
 FROM node:20-alpine3.22 AS production-stage
+ARG NODE_ENV
 
 WORKDIR /app
 RUN corepack enable
@@ -38,10 +47,11 @@ RUN rm -rf client/public client/src client/.browserslistrc .eslintrc.js .gitigno
 
 FROM node:20-alpine3.22 AS docker-stage
 # For use in docker-compose
+ARG NODE_ENV
 
 WORKDIR /app
-ENV NODE_ENV production
-ENV FFPROBE_PATH /usr/bin/ffprobe
+ENV NODE_ENV=$NODE_ENV
+ENV FFPROBE_PATH=/usr/bin/ffprobe
 RUN apk update -q && apk --no-cache add curl ffmpeg -q
 RUN corepack enable
 COPY docker/scripts/wait_for_db.sh /app/wait_for_db.sh

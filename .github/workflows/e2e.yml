@@ -206,7 +206,7 @@ jobs:
         run: docker images
 
       - name: Start Docker containers
-        run: docker compose -f docker/docker-compose.yml up -d --no-build
+        run: SESSION_SECRET=${{ env.SESSION_SECRET }} docker compose -f docker/docker-compose.yml up -d --no-build
 
       - name: Use Node.js 20.x
         uses: actions/setup-node@v4
