@@ -2,7 +2,7 @@ import { defineConfig } from "cypress";
 import viteConfig from "./vite.config.js";
 
 export default defineConfig({
-	projectId: "3utpz8",
+	projectId: "y2buwm",
 	downloadsFolder: "tests/e2e/downloads",
 	fixturesFolder: "tests/e2e/fixtures",
 	screenshotsFolder: "tests/e2e/screenshots",
