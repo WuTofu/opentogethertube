@@ -109,7 +109,37 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Create config
+        env:
+          CONFIG: env/development.toml
+        run: |
+          touch ${{ env.CONFIG }}
+          echo "session_secret=\"${{ env.SESSION_SECRET }}\"" >> ${{ env.CONFIG }}
+          echo "[db]" >> ${{ env.CONFIG }}
+          echo "mode = \"postgres\"" >> ${{ env.CONFIG }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/monolith.Dockerfile
+          target: docker-stage
+          build-args: NODE_ENV=development
+          tags: opentogethertube:latest
+          push: false
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max,compression=zstd
+      - name: Report docker images
+        run: docker images
+
+      - name: Start Docker containers
+        run: docker compose -f docker/docker-compose.yml up -d --no-build
+
+      - name: Use Node.js 20.x
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
@@ -117,13 +147,15 @@ jobs:
           cache: "yarn"
           cache-dependency-path: "./yarn.lock"
 
-      - uses: actions/cache@v4
+      - name: Load node_modules cache
+        uses: actions/cache@v4
         with:
           path: node_modules
           key: node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-
-      - uses: actions/cache@v4
+      - name: Load cypress cache
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cache/Cypress
@@ -160,6 +192,62 @@ jobs:
           # Recommended: pass the GitHub token lets this action correctly
           # determine the unique run id necessary to re-run the checks
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  e2e-docker:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20.x]
+        # run copies of the current job in parallel
+        # containers: [1, 2]
+        browsers: [electron]
+    env:
+      # this is safe because it's only used for testing
+      SESSION_SECRET: LERTmi2Jiz6gJHt21AZUWBstezP41P3odxzEsCo1w4zL8XqGyjGdMZ2QPXUenVQQ2fY1xzGBYseB1g9teRHbxF
+      CI: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Compose
+        run: |
+          docker compose -f docker/docker-compose.yml up -d --build
+
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+          check-latest: true
+          cache: "yarn"
+          cache-dependency-path: "./yarn.lock"
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/Cypress
+          key: cypress-${{ runner.os }}-node-20.x-${{ hashFiles('yarn.lock') }}
+
+      - run: npm i cypress
+      - name: Run Cypress E2E against Docker
+        uses: cypress-io/github-action@v6.6.1
+        with:
+          install: false
+          start: "echo 'App  running in Docker, skipping start command'"
+          wait-on: "http://localhost:8080/api/status"
+          wait-on-timeout: 30
+          browser: electron
+          record: true
+          group: "E2E - docker - ${{ matrix.browsers }}"
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          CYPRESS_CI: true
+          CYPRESS_YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          # Recommended: pass the GitHub token lets this action correctly
+          # determine the unique run id necessary to re-run the checks
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Shut down Docker Compose
+        if: always()
+        run: docker compose -f docker/docker-compose.yml down
   e2e-grafana:
     runs-on: ubuntu-latest
     strategy:
