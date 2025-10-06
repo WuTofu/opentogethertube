@@ -45,7 +45,7 @@ services:
 
   postgres_db:
     container_name: opentogethertube_postgres
-    image: postgres:15-bullseye
+    image: postgres:15-alpine
     environment:
       - POSTGRES_DB=opentogethertube
       - POSTGRES_USER=opentogethertube
