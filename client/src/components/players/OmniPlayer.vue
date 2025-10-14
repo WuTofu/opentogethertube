@@ -19,8 +19,8 @@
 					</div>
 				</v-container>
 			</v-sheet>
+			<PlayerNotificationsBar />
 		</div>
-
 		<Suspense>
 			<YoutubePlayer
 				v-if="!!source && source.service == 'youtube'"
@@ -149,6 +149,7 @@ import { PlayerStatus } from "ott-common/models/types";
 import { QueueItem } from "ott-common/models/video";
 import { calculateCurrentPosition } from "ott-common/timestamp";
 import { defineAsyncComponent, PropType, ref, Ref, computed, watch } from "vue";
+import PlayerNotificationsBar from "./PlayerNotificationsBar.vue";
 import {
 	MediaPlayer,
 	MediaPlayerWithCaptions,
@@ -159,6 +160,8 @@ import {
 	useMediaPlayer,
 	usePlaybackRate,
 	useVolume,
+	PlayerNotif,
+	usePlayerNotif,
 } from "../composables";
 import { watchEffect } from "vue";
 import { ALL_VIDEO_SERVICES } from "ott-common";
@@ -325,8 +328,13 @@ function onBuffering() {
 	emit("buffering");
 }
 
-function onError() {
+const { addNotification } = usePlayerNotif();
+
+function onError(data?: PlayerNotif) {
 	store.commit("PLAYBACK_STATUS", PlayerStatus.error);
+	if (data) {
+		addNotification(data);
+	}
 	emit("error");
 }
 

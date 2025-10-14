@@ -17,6 +17,8 @@ export default {
 		"search": "Search",
 		"undo": "Undo",
 		"copy": "Copy",
+		"copied": "Copied",
+		"Failed": "Failed",
 		"show": "Show",
 		"hide": "Hide",
 		"discard": "Discard",
@@ -406,5 +408,6 @@ export default {
 		"buffer-warn": {
 			spans: "You haven't buffered enough of the video yet. Current time ranges buffered: {ranges}",
 		},
+		"notif-details": "Details",
 	},
 };

@@ -11,6 +11,7 @@ import "plyr/src/sass/plyr.scss";
 import type { MediaPlayerWithCaptions, MediaPlayerWithPlaybackRate } from "../composables";
 import { useCaptions } from "../composables";
 import type { CaptionTrack } from "@/models/media-tracks";
+import type { PlayerNotif } from "@/models/playerNotif";
 
 export default defineComponent({
 	name: "PlyrPlayer",
@@ -168,7 +169,12 @@ export default defineComponent({
 				emit("buffer-progress", player.value.buffered);
 			});
 			player.value.on("error", err => {
-				emit("error");
+				const notif: PlayerNotif = {
+					type: "error",
+					message: "An error occurred while playing the video.",
+					details: JSON.stringify(err.detail),
+				};
+				emit("error", notif);
 				console.error("PlyrPlayer: error:", err);
 			});
 
