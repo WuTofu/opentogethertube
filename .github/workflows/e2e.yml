@@ -10,8 +10,8 @@ on:
       - "**/*.md"
       - ".gitpod.yml"
   push:
-    branches:
-      - master
+    # branches:
+    #   - master
     paths-ignore:
       - ".vscode/**"
       - "docs/**"
