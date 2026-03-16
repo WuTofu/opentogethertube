@@ -10,8 +10,8 @@ on:
       - "**/*.md"
       - ".gitpod.yml"
   push:
-    # branches:
-    #   - master
+    branches:
+      - docker-e2e-test
     paths-ignore:
       - ".vscode/**"
       - "docs/**"
