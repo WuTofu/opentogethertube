@@ -46,10 +46,29 @@ Cypress.Commands.add("ottRequest", (options: Partial<Cypress.RequestOptions>) =>
 	});
 });
 
+Cypress.Commands.add("ottDevRequest", (options: Partial<Cypress.RequestOptions>) => {
+	const nodeEnv = Cypress.env("NODE_ENV");
+	if (nodeEnv !== "development") {
+		Cypress.log({
+			name: "ottDevRequest",
+			message: `Skipping dev-only endpoint ${options.url} because NODE_ENV=${nodeEnv}`,
+		});
+		return;
+	}
+	return cy.ottRequest(options);
+});
+
 Cypress.Commands.add("ottResetRateLimit", () => {
-	return cy.ottRequest({
+	return cy.ottDevRequest({
 		method: "POST",
 		url: "/api/dev/reset-rate-limit",
+	});
+});
+
+Cypress.Commands.add("ottResetUserRateLimit", () => {
+	return cy.ottDevRequest({
+		method: "POST",
+		url: "/api/dev/reset-rate-limit/user",
 	});
 });
 
@@ -70,7 +89,7 @@ Cypress.Commands.add("ottLogin", userCreds => {
 });
 
 Cypress.Commands.add("ottCreateSocialUser", user => {
-	return cy.ottRequest({
+	return cy.ottDevRequest({
 		method: "POST",
 		url: "/api/dev/user/create-social",
 		body: user,
@@ -78,7 +97,7 @@ Cypress.Commands.add("ottCreateSocialUser", user => {
 });
 
 Cypress.Commands.add("ottForceLogin", username => {
-	return cy.ottRequest({
+	return cy.ottDevRequest({
 		method: "POST",
 		url: "/api/dev/user/force-login",
 		body: { username },
@@ -86,10 +105,26 @@ Cypress.Commands.add("ottForceLogin", username => {
 });
 
 Cypress.Commands.add("ottSetDiscordLink", user => {
-	return cy.ottRequest({
+	return cy.ottDevRequest({
 		method: "POST",
 		url: "/api/dev/user/set-discord-link",
 		body: user,
+	});
+});
+
+Cypress.Commands.add("ottSetAdminApiKey", newkey => {
+	return cy.ottDevRequest({
+		method: "POST",
+		url: "/api/dev/set-admin-api-key",
+		body: { newkey },
+	});
+});
+
+Cypress.Commands.add("ottAddFakeUser", (roomName, register = false) => {
+	return cy.ottDevRequest({
+		method: "POST",
+		url: `/api/dev/room/${roomName}/add-fake-user`,
+		body: { register },
 	});
 });
 

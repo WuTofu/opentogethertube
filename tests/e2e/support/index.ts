@@ -25,12 +25,16 @@ declare global {
 		interface Chainable {
 			ottEnsureToken(): Chainable<Element>;
 			ottRequest(options: Partial<Cypress.RequestOptions>): Chainable<Element>;
+			ottDevRequest(options: Partial<Cypress.RequestOptions>): Chainable<Element>;
 			ottResetRateLimit(): Chainable<Element>;
+			ottResetUserRateLimit(): Chainable<Element>;
 			ottCreateUser(userCreds: any): Chainable<Element>;
 			ottLogin(userCreds: any): Chainable<Element>;
 			ottCreateSocialUser(user: any): Chainable<Element>;
 			ottForceLogin(username: string): Chainable<Element>;
 			ottSetDiscordLink(user: any): Chainable<Element>;
+			ottSetAdminApiKey(newkey: string): Chainable<Element>;
+			ottAddFakeUser(roomName: string, register?: boolean): Chainable<Element>;
 			/**
 			 * Helper function for moving a vue-slider component to a desired percentage.
 			 * @param percent number between 0 and 1

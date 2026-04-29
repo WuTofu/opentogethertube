@@ -19,10 +19,7 @@ describe("Account management", () => {
 		cy.clearLocalStorage();
 		cy.ottEnsureToken();
 		cy.ottResetRateLimit();
-		cy.ottRequest({
-			method: "POST",
-			url: "/api/dev/reset-rate-limit/user",
-		});
+		cy.ottResetUserRateLimit();
 	});
 
 	it("should redirect logged out users away from the account page", () => {

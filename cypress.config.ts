@@ -11,6 +11,7 @@ export default defineConfig({
 	chromeWebSecurity: false,
 	env: {
 		OTT_API_KEY: `TESTAPIKEY-abcdefghijklmnopqrstuvwxyz`,
+		NODE_ENV: process.env.NODE_ENV ?? "development",
 	},
 	e2e: {
 		baseUrl: "http://localhost:8080/",

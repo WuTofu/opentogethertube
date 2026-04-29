@@ -54,13 +54,7 @@ describe("Creating Rooms", () => {
 	});
 
 	it("should create a permanent room, unload it, and be able to load it back up", () => {
-		cy.ottRequest({
-			method: "POST",
-			url: "/api/dev/set-admin-api-key",
-			body: {
-				newkey: Cypress.env("OTT_API_KEY"),
-			},
-		});
+		cy.ottSetAdminApiKey(Cypress.env("OTT_API_KEY"));
 		cy.visit(Cypress.config().baseUrl);
 		cy.contains("Create Room").should("be.visible").click();
 		cy.get(".v-menu")
@@ -89,10 +83,7 @@ describe("Creating Rooms", () => {
 		let userCreds = null;
 		before(() => {
 			cy.ottEnsureToken();
-			cy.ottRequest({
-				method: "POST",
-				url: "/api/dev/reset-rate-limit/user",
-			});
+			cy.ottResetUserRateLimit();
 			userCreds = {
 				email: faker.internet.email(),
 				username: faker.internet.userName(),

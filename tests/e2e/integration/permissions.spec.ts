@@ -38,10 +38,7 @@ describe("promotion and demotion", () => {
 		cy.clearLocalStorage();
 		cy.ottEnsureToken();
 		cy.ottResetRateLimit();
-		cy.ottRequest({
-			method: "POST",
-			url: "/api/dev/reset-rate-limit/user",
-		});
+		cy.ottResetUserRateLimit();
 		cy.ottLogin(userCreds);
 		roomName = uuid.v4().substring(0, 20);
 		cy.ottRequest({
@@ -49,11 +46,7 @@ describe("promotion and demotion", () => {
 			url: "/api/room/create",
 			body: { name: roomName, isTemporary: false },
 		});
-		cy.ottRequest({
-			method: "POST",
-			url: `/api/dev/room/${roomName}/add-fake-user`,
-			body: { register: true },
-		});
+		cy.ottAddFakeUser(roomName, true);
 		cy.visit(`/room/${roomName}`, {
 			timeout: 10000,
 		});
