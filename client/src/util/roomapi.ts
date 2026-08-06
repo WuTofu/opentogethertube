@@ -93,16 +93,6 @@ class RoomApi {
 		});
 	}
 
-	chat(text: string) {
-		this.connection.send({
-			action: "req",
-			request: {
-				type: RoomRequestType.ChatRequest,
-				text,
-			},
-		});
-	}
-
 	playNow(video: VideoId) {
 		this.connection.send({
 			action: "req",

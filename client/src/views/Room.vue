@@ -70,12 +70,6 @@
 							:class="{ hidden: controlsVisible }"
 						></div>
 						<div
-							class="pointer-events-none absolute bottom-20 right-0 h-[70%] min-h-17.5 w-100 px-2.5 py-1.25 max-lg:w-62.5"
-							v-if="controlsMode === 'in-video'"
-						>
-							<Chat ref="chat" @link-click="setAddPreviewText" />
-						</div>
-						<div
 							class="absolute inset-0 z-200 flex items-center justify-center"
 							v-if="mediaPlaybackBlocked"
 						>
@@ -92,12 +86,6 @@
 						:key="currentSource?.id"
 						:mode="controlsMode"
 					/>
-				</div>
-				<div
-					class="pointer-events-none h-75 min-h-25 w-100 px-2.5 py-1.25 max-lg:w-full"
-					v-if="controlsMode === 'outside-video' && !store.state.fullscreen"
-				>
-					<Chat ref="chat" always-visible @link-click="setAddPreviewText" />
 				</div>
 			</div>
 			<div class="my-2.5">
@@ -136,7 +124,7 @@
 								<VideoQueue @switchtab="queueTab = 'add'" />
 							</TabsContentAnimated>
 							<TabsContentAnimated value="add">
-								<AddPreview ref="addpreview" />
+								<AddPreview />
 							</TabsContentAnimated>
 							<TabsContentAnimated value="settings">
 								<RoomSettingsForm ref="settings" />
@@ -276,7 +264,6 @@ import AddPreview from "@/components/AddPreview.vue";
 import { calculateCurrentPosition } from "ott-common/timestamp";
 import _ from "lodash";
 import OmniPlayer from "@/components/players/OmniPlayer.vue";
-import Chat from "@/components/Chat.vue";
 import UserList from "@/components/UserList.vue";
 import VideoQueue from "@/components/VideoQueue.vue";
 import RoomSettingsForm from "@/components/RoomSettingsForm.vue";
@@ -317,7 +304,6 @@ export default defineComponent({
 		VideoControls,
 		VideoQueue,
 		OmniPlayer,
-		Chat,
 		AddPreview,
 		UserList,
 		RoomSettingsForm,
@@ -690,22 +676,6 @@ export default defineComponent({
 
 		const granted = useGrants();
 
-		const addpreview = ref<typeof AddPreview | null>(null);
-		async function setAddPreviewText(text: string) {
-			queueTab.value = "add";
-			await nextTick();
-			if (!addpreview.value) {
-				// HACK: the tab is not yet mounted, so we need to wait for it to be mounted
-				// this will be more elegant when we have a new vue 3 style global event bus.
-				await nextTick();
-			}
-			if (addpreview.value) {
-				addpreview.value.setAddPreviewText(text);
-			} else {
-				console.error("addpreview is not mounted, can't set text");
-			}
-		}
-
 		// keyboard shortcuts
 		const shortcuts = new KeyboardShortcuts();
 		shortcuts.bind([{ code: "Space" }, { code: "KeyK" }], () => {
@@ -846,8 +816,6 @@ export default defineComponent({
 			isMobile,
 			queueTab,
 			settings: roomSettingsForm,
-			addpreview,
-			setAddPreviewText,
 
 			currentSource,
 			production,

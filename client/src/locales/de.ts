@@ -198,9 +198,6 @@ export default {
 		quality: "Qualität",
 		"playback-speed": "Wiedergabegeschwindigkeit",
 		"mute-volume": "Stummschalten",
-		"close-chat": "Chat schließen",
-		"open-chat": "Chat öffnen",
-		"scroll-chat-bottom": "Nach unten scrollen",
 		"shuffle-queue": "Warteschlange mischen",
 		"switch-layout": "Layout wechseln",
 		"default-layout": "Standard-Layout",
@@ -229,10 +226,6 @@ export default {
 		title: "@:footer.privacy-policy",
 		eyebrow: "Das Kleingedruckte",
 		contact: "Kontaktinformationen",
-	},
-	chat: {
-		title: "Chat",
-		"type-here": "Schreibe deine Nachricht hier...",
 	},
 	"share-invite": {
 		title: "Einladung zum Teilen",

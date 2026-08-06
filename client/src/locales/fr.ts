@@ -142,10 +142,6 @@ export default {
 	privacy: {
 		title: "@:footer.privacy-policy",
 	},
-	chat: {
-		title: "Chat",
-		"type-here": "Écris ton message ici...",
-	},
 	"share-invite": {
 		title: "Partager l'invitation",
 		text: "Copie ce lien et partage le à t'es amis!",
