@@ -13,9 +13,6 @@ const connection = useConnection();
 connection.addMessageHandler("sync", msg => {
 	store.dispatch("room/sync", msg);
 });
-connection.addMessageHandler("chat", msg => {
-	store.dispatch("chat", msg);
-});
 connection.addMessageHandler("announcement", msg => {
 	store.dispatch("announcement", msg);
 });
