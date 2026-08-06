@@ -195,9 +195,6 @@ export default {
 		quality: "Quality",
 		"playback-speed": "Playback speed",
 		"mute-volume": "Mute",
-		"close-chat": "Close chat",
-		"open-chat": "Open chat",
-		"scroll-chat-bottom": "Scroll to bottom",
 		"shuffle-queue": "Shuffle queue",
 		"switch-layout": "Switch layout",
 		"default-layout": "Default layout",
@@ -226,10 +223,6 @@ export default {
 		title: "@:footer.privacy-policy",
 		eyebrow: "The fine print",
 		contact: "Contact Info",
-	},
-	chat: {
-		title: "Chat",
-		"type-here": "Type your message here...",
 	},
 	"share-invite": {
 		title: "Share Invite",

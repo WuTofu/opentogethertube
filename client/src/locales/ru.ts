@@ -179,10 +179,6 @@ export default {
 	privacy: {
 		title: "@:footer.privacy-policy",
 	},
-	chat: {
-		title: "Чат",
-		"type-here": "Напишите Ваше сообщение здесь...",
-	},
 	"share-invite": {
 		title: "Приглашение",
 		text: "Скопируйте эту ссылку, и поделитесь ею с друзьями!",
