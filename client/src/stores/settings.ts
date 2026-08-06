@@ -47,7 +47,7 @@ export const settingsModule: Module<SettingsState, unknown> = {
 		sfxEnabled: true,
 		sfxVolume: 0.8,
 		enableAdapterSelector: false,
-		nativeYoutubeControls: false,
+		nativeYoutubeControls: true,
 	},
 	mutations: {
 		UPDATE(state, settings: Partial<SettingsState>) {
