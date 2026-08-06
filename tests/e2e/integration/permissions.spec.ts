@@ -41,7 +41,6 @@ describe("promotion and demotion", () => {
 			});
 			await page.goto(`/room/${roomName}`);
 
-			await page.locator('[data-cy="room-panel-users"]').click();
 			await page.locator(".user-actions").click();
 			await page.getByText(`Promote to ${role.display}`).click();
 			await expect(page.locator(`.user[data-role="${role.name}"]`)).toBeVisible();
