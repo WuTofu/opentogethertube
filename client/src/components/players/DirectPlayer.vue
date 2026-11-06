@@ -138,6 +138,14 @@ function destroyJassub() {
 	}
 }
 
+// JASSUB's default font has no CJK glyphs, so fonts a subtitle asks for but can't be found would
+// render as empty boxes. This is the single full WOFF from Google Fonts: its CSS API only gives
+// modern browsers ~100 unicode-range slices, and JASSUB can't assemble those. Only downloaded
+// (about 4 MB) once a subtitle actually needs the fallback.
+const SUBTITLE_FALLBACK_FONT = "Noto Sans Tc";
+const SUBTITLE_FALLBACK_FONT_URL =
+	"https://fonts.gstatic.com/s/notosanstc/v40/-nFuOG829Oofr2wohFbTp9ifNAn722rq0MXz76Cy_Ck.woff";
+
 // every track change is chained onto this promise, so switches always run in the order they
 // were requested and the last one wins, instead of racing on the async jassub calls below
 let trackQueue: Promise<void> = Promise.resolve();
@@ -178,6 +186,8 @@ async function doApplyTrack(idx: number, enabled: boolean) {
 				// locally (e.g. CJK/decorative fonts) still render instead of falling
 				// back to the default font
 				queryFonts: "localandremote",
+				availableFonts: { [SUBTITLE_FALLBACK_FONT]: SUBTITLE_FALLBACK_FONT_URL },
+				defaultFont: SUBTITLE_FALLBACK_FONT,
 			});
 			await jassubInstance.ready;
 		} else {
